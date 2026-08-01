@@ -1,0 +1,13 @@
+[package]
+name = "skinlite-txd"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+image = { version = "0.25.10", default-features = false }
+libtxd = "0.1.0"
+wasm-bindgen = "0.2"
