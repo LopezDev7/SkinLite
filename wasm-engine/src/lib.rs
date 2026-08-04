@@ -13,7 +13,7 @@ const EXTENSION_CHUNK: u32 = 0x03;
 
 #[wasm_bindgen]
 pub fn optimize_txd(bytes: &[u8], max_dimension: u32, quality: f32) -> Result<Vec<u8>, JsError> {
-    let raw_texture_count = count_pc_texture_chunks(bytes).map_err(JsError::new)?;
+    let raw_texture_count = count_pc_texture_chunks(bytes).map_err(|error| JsError::new(&error))?;
     let mut input = Cursor::new(bytes);
     let mut dictionary = TextureDictionary::from_reader(&mut input)
         .map_err(|error| JsError::new(&format!("No pudimos leer el TXD: {error}")))?;
