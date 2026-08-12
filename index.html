@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Optimizá el TXD de una skin de SA-MP desde el navegador. El DFF queda igual y los archivos no salen del equipo." />
+    <title>SkinLite — optimizador de TXD para SA-MP</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#top">SkinLite</a>
+      <a class="top-link" href="https://github.com/LopezDev7/SkinLite">Código en GitHub</a>
+    </header>
+
+    <main id="top">
+      <section class="intro">
+        <h1>Optimizador de TXD</h1>
+        <p>Para skins de GTA San Andreas (SA-MP y open.mp). Elegí el <code>.DFF</code> y el <code>.TXD</code> de la misma skin: el modelo queda igual y el TXD se guarda con las texturas más livianas.</p>
+        <p>Todo se procesa en el navegador. Los archivos no se suben a ningún servidor.</p>
+      </section>
+
+      <section class="workspace" id="archivos">
+        <h2>1. Elegí los archivos</h2>
+        <label class="dropzone" id="dropzone" for="file-input">
+          <input id="file-input" type="file" accept=".dff,.txd,application/octet-stream" multiple />
+          <span>Arrastrá el <code>.DFF</code> y el <code>.TXD</code> acá, o hacé clic para buscarlos.</span>
+          <small>También podés pegarlos con Ctrl + V.</small>
+        </label>
+        <div class="pair-status" id="pair-status" aria-live="polite" hidden></div>
+
+        <div class="settings" id="settings" hidden>
+          <h2>2. Ajustes</h2>
+          <div class="settings-grid">
+            <label class="setting">
+              <span>Tamaño máximo de textura</span>
+              <select id="max-size">
+                <option value="512">512 px (recomendado)</option>
+                <option value="1024">1024 px (más detalle)</option>
+                <option value="256">256 px (más chico)</option>
+                <option value="0">Sin cambiar el tamaño</option>
+              </select>
+              <small>Solo se reducen las texturas que superen ese tamaño.</small>
+            </label>
+            <div class="setting">
+              <div class="quality-head">
+                <label for="quality">Calidad de imagen</label>
+                <span id="quality-value">75%</span>
+              </div>
+              <input id="quality" type="range" min="30" max="100" value="75" />
+              <small>Si no sabés qué poner, dejalo como está.</small>
+            </div>
+          </div>
+          <div class="actions">
+            <span id="pair-count">El DFF no se modifica.</span>
+            <div>
+              <button class="button secondary" id="clear-button" type="button">Elegir otros</button>
+              <button class="button primary" id="optimize-button" type="button">Optimizar TXD</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="results" id="results" hidden>
+          <div class="results-head">
+            <h2>3. Listo</h2>
+            <button class="button secondary" id="download-all" type="button">Descargar los dos (.zip)</button>
+          </div>
+          <div class="summary" id="summary"></div>
+          <div class="file-list" id="file-list"></div>
+          <p>Se descarga un .zip con el DFF original y el TXD optimizado. Guardá los originales hasta probar la skin en el juego.</p>
+        </div>
+      </section>
+
+      <aside class="format-note">
+        Si abriste el archivo con doble clic, vas a poder elegir los archivos pero el optimizador no va a cargar. Usá la página publicada o serví la carpeta con <code>python -m http.server</code>.
+      </aside>
+    </main>
+
+    <footer>
+      <span>SkinLite</span>
+      <a href="https://github.com/LopezDev7/SkinLite">GitHub</a>
+      <a href="https://github.com/LopezDev7/SkinLite/blob/main/LICENSE">MIT</a>
+    </footer>
+  </body>
+</html>
