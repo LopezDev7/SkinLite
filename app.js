@@ -221,5 +221,5 @@ function download(file, name) {
   anchor.href = url;
   anchor.download = name;
   anchor.click();
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  window.setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
