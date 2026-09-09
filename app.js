@@ -143,7 +143,7 @@ async function downloadSkin() {
     { name: optimizedDff.name, data: dffBytes },
     { name: optimizedTxd.name, data: txdBytes },
   ]);
-  const zipName = `skinlite-${txdFile.name.replace(/\.txd$/i, '')}.zip`;
+  const zipName = 'skinlite.zip';
   download(zip, zipName);
 }
 
