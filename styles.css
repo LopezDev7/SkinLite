@@ -86,7 +86,7 @@ h2 {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-height: 170px;
+  min-height: 180px;
   padding: 24px;
   text-align: center;
   border: 2px dashed var(--border);
