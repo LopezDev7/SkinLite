@@ -1,12 +1,12 @@
 :root {
-  --bg: #ffffff;
-  --surface: #ffffff;
-  --text: #121212;
-  --muted: #6b6b6b;
-  --border: #d9d9d9;
-  --panel: #f5f5f5;
+  --bg: #0d0d0d;
+  --surface: #151515;
+  --text: #f2f2f2;
+  --muted: #a1a1a1;
+  --border: #333333;
+  --panel: #1c1c1c;
   --accent: #e8542a;
-  --accent-dark: #c6401b;
+  --accent-dark: #e4551f;
 }
 
 * { box-sizing: border-box; }
@@ -86,7 +86,7 @@ h2 {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-height: 180px;
+  min-height: 170px;
   padding: 24px;
   text-align: center;
   border: 2px dashed var(--border);
@@ -94,7 +94,7 @@ h2 {
   cursor: pointer;
 }
 
-.dropzone.dragover { border-color: var(--accent); background: #fff6f2; }
+.dropzone.dragover { border-color: var(--accent); background: #241710; }
 .dropzone small { color: var(--muted); }
 .dropzone input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 
@@ -108,7 +108,7 @@ h2 {
 }
 
 .pair-file.ready { color: var(--accent); }
-.pair-error { color: #b23b2e; }
+.pair-error { color: #ff8a7a; }
 
 .settings, .results { margin-top: 32px; padding-top: 28px; border-top: 1px solid var(--border); }
 
@@ -123,6 +123,7 @@ h2 {
   border: 1px solid var(--border);
   border-radius: 5px;
   background: var(--surface);
+  color: var(--text);
   font: inherit;
 }
 
@@ -150,7 +151,7 @@ h2 {
 }
 
 .button.secondary { background: var(--surface); color: var(--text); }
-.button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.button.primary { background: var(--accent); color: #160d08; border-color: var(--accent); font-weight: 600; }
 .button.primary:hover:not(:disabled) { background: var(--accent-dark); }
 .button:disabled { opacity: 0.6; cursor: default; }
 
