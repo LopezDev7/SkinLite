@@ -9,6 +9,8 @@
   --accent-dark: #e4551f;
 }
 
+html { scroll-behavior: smooth; }
+
 * { box-sizing: border-box; }
 
 body {
