@@ -3,6 +3,7 @@ const dropzone = document.querySelector('#dropzone');
 const settings = document.querySelector('#settings');
 const results = document.querySelector('#results');
 const status = document.querySelector('#pair-status');
+const toolStatus = document.querySelector('#tool-status');
 const quality = document.querySelector('#quality');
 let dffFile = null;
 let txdFile = null;
@@ -19,8 +20,18 @@ document.addEventListener('paste', (event) => {
   if (files.length) addFiles(files);
 });
 document.querySelector('#clear-button').addEventListener('click', clearFiles);
+document.querySelector('#restart-button').addEventListener('click', restart);
 document.querySelector('#optimize-button').addEventListener('click', optimizeSkin);
 document.querySelector('#download-all').addEventListener('click', downloadSkin);
+
+function setToolStatus(text, state = '') {
+  toolStatus.className = `toolbar-status ${state}`.trim();
+  toolStatus.replaceChildren();
+  const dot = document.createElement('span');
+  dot.className = 'status-dot';
+  dot.setAttribute('aria-hidden', 'true');
+  toolStatus.append(dot, text);
+}
 
 for (const eventName of ['dragenter', 'dragover']) dropzone.addEventListener(eventName, (event) => { event.preventDefault(); dropzone.classList.add('dragover'); });
 for (const eventName of ['dragleave', 'drop']) dropzone.addEventListener(eventName, (event) => { event.preventDefault(); dropzone.classList.remove('dragover'); });
@@ -51,9 +62,11 @@ function updatePair() {
   if (dffFile && txdFile) {
     status.classList.add('pair-complete');
     settings.hidden = false;
+    setToolStatus('Listo para optimizar', 'ready');
   } else {
     status.classList.remove('pair-complete');
     status.classList.add('pair-incomplete');
+    setToolStatus('Faltan archivos');
   }
 }
 
@@ -61,8 +74,15 @@ function clearFiles() {
   dffFile = txdFile = optimizedDff = optimizedTxd = null;
   input.value = '';
   status.hidden = true;
+  status.classList.remove('pair-error', 'pair-complete', 'pair-incomplete');
   settings.hidden = true;
   results.hidden = true;
+  setToolStatus('Esperando archivos');
+}
+
+function restart() {
+  clearFiles();
+  document.querySelector('#stage-files').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 async function loadTxdEngine() {
@@ -85,6 +105,7 @@ async function optimizeSkin() {
   const button = document.querySelector('#optimize-button');
   button.disabled = true;
   button.textContent = 'Procesando…';
+  setToolStatus('Procesando…', 'busy');
   try {
     const engine = await loadTxdEngine();
     const bytes = new Uint8Array(await txdFile.arrayBuffer());
@@ -95,12 +116,14 @@ async function optimizeSkin() {
     const name = txdFile.name.replace(/\.txd$/i, '') + '-ligera.txd';
     optimizedTxd = { file: new Blob([processed], { type: 'application/octet-stream' }), name, size: processed.length, unchanged: false };
     renderResults();
+    setToolStatus('Listo', 'ready');
   } catch (error) {
     status.hidden = false;
     status.classList.add('pair-error');
     status.textContent = error.message || 'No se pudo abrir el TXD. Revisá que sea un archivo válido de GTA San Andreas para PC.';
     settings.hidden = false;
     results.hidden = true;
+    setToolStatus('Error');
   } finally {
     button.disabled = false;
     button.textContent = 'Optimizar TXD';
@@ -116,7 +139,12 @@ function renderResults() {
   headline.textContent = saved > 0 ? `El TXD pesa ${formatBytes(saved)} menos.` : 'El TXD ya estaba optimizado.';
   const details = document.createElement('span');
   details.textContent = `${formatBytes(oldSize)} → ${formatBytes(optimizedTxd.size)}`;
-  summary.append(headline, details);
+  const bar = document.createElement('div');
+  bar.className = 'bar';
+  const fill = document.createElement('span');
+  fill.style.width = `${oldSize > 0 && saved > 0 ? Math.round((saved / oldSize) * 100) : 0}%`;
+  bar.append(fill);
+  summary.append(headline, details, bar);
 
   const list = document.querySelector('#file-list');
   list.replaceChildren();
