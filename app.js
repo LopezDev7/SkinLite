@@ -26,11 +26,7 @@ document.querySelector('#download-all').addEventListener('click', downloadSkin);
 
 function setToolStatus(text, state = '') {
   toolStatus.className = `toolbar-status ${state}`.trim();
-  toolStatus.replaceChildren();
-  const dot = document.createElement('span');
-  dot.className = 'status-dot';
-  dot.setAttribute('aria-hidden', 'true');
-  toolStatus.append(dot, text);
+  toolStatus.textContent = text;
 }
 
 for (const eventName of ['dragenter', 'dragover']) dropzone.addEventListener(eventName, (event) => { event.preventDefault(); dropzone.classList.add('dragover'); });

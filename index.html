@@ -11,94 +11,70 @@
   </head>
   <body>
     <header class="site-header">
-      <div class="header-inner">
-        <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true">S</span>SkinLite</a>
-        <nav class="header-nav" aria-label="Navegación">
-          <a href="#uso">Uso</a>
-          <a href="https://github.com/LopezDev7/SkinLite" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
-        </nav>
-      </div>
+      <a class="brand" href="#top"><span class="brand-dot" aria-hidden="true"></span>SkinLite</a>
+      <a class="link" href="https://github.com/LopezDev7/SkinLite" target="_blank" rel="noopener">GitHub</a>
     </header>
 
     <main id="top">
-      <section class="hero">
-        <span class="hero-rule" aria-hidden="true"></span>
-        <h1>Optimizá el TXD<br /><span>de tu skin.</span></h1>
-        <p class="lede">El DFF queda igual, el TXD sale más liviano. Elegí los dos archivos, ajustá el tamaño y probalos en el juego. Todo se procesa acá, en el navegador.</p>
-        <ul class="facts">
-          <li>SA-MP / open.mp</li>
-          <li>Sin subir archivos</li>
-          <li>MIT</li>
-        </ul>
-      </section>
+      <div class="intro">
+        <h1>SkinLite</h1>
+        <p>Optimizá el TXD de una skin de SA-MP. El DFF queda igual y el TXD se guarda con las texturas más livianas. Todo corre en el navegador.</p>
+      </div>
 
-      <section class="workspace" id="uso" aria-label="Optimizador de TXD">
-        <div class="toolbar">
-          <span class="toolbar-name">skinlite <span aria-hidden="true">/</span> optimizador</span>
-          <span class="toolbar-status" id="tool-status"><span class="status-dot" aria-hidden="true"></span>Esperando archivos</span>
-        </div>
+      <section class="tool" id="stage-files">
+        <h2>Archivos</h2>
+        <label class="dropzone" id="dropzone" for="file-input">
+          <input id="file-input" type="file" accept=".dff,.txd,application/octet-stream" multiple />
+          <svg class="drop-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" /></svg>
+          <span>Arrastrá el <code>.DFF</code> y el <code>.TXD</code>, o hacé clic para buscarlos.</span>
+          <small>También podés pegarlos con Ctrl + V.</small>
+        </label>
+        <div class="pair-status" id="pair-status" aria-live="polite" hidden></div>
 
-        <div class="workspace-body">
-          <section class="stage" id="stage-files">
-            <div class="stage-head"><span class="stage-num">01</span><h2>Tus archivos</h2></div>
-            <label class="dropzone" id="dropzone" for="file-input">
-              <input id="file-input" type="file" accept=".dff,.txd,application/octet-stream" multiple />
-              <span class="drop-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" /></svg>
-              </span>
-              <span class="drop-title">Solta el <code>.DFF</code> y el <code>.TXD</code></span>
-              <span class="drop-sub">o hacé clic para buscarlos · también podés pegar con Ctrl + V</span>
+        <div class="settings" id="settings" hidden>
+          <h2>Ajustes</h2>
+          <div class="settings-grid">
+            <label class="setting">
+              <span>Tamaño máximo de textura</span>
+              <select id="max-size">
+                <option value="512">512 px · recomendado</option>
+                <option value="1024">1024 px · más detalle</option>
+                <option value="256">256 px · más chico</option>
+                <option value="0">Sin cambiar el tamaño</option>
+              </select>
+              <small>Solo se reducen las texturas que superen ese tamaño.</small>
             </label>
-            <div class="pair-status" id="pair-status" aria-live="polite" hidden></div>
-          </section>
-
-          <section class="stage" id="settings" hidden>
-            <div class="stage-head"><span class="stage-num">02</span><h2>Ajustes</h2></div>
-            <div class="settings-grid">
-              <label class="setting">
-                <span class="setting-label">Tamaño máximo de textura</span>
-                <select id="max-size">
-                  <option value="512">512 px · recomendado</option>
-                  <option value="1024">1024 px · más detalle</option>
-                  <option value="256">256 px · más chico</option>
-                  <option value="0">Sin cambiar el tamaño</option>
-                </select>
-                <small>Solo se reducen las texturas que superen ese tamaño.</small>
-              </label>
-              <div class="setting">
-                <div class="quality-head">
-                  <label class="setting-label" for="quality">Calidad de imagen</label>
-                  <span class="quality-value" id="quality-value">75%</span>
-                </div>
-                <input id="quality" type="range" min="30" max="100" value="75" />
-                <small>Si no sabés qué poner, dejalo como está.</small>
+            <div class="setting">
+              <div class="quality-head">
+                <label for="quality">Calidad de imagen</label>
+                <span id="quality-value">75%</span>
               </div>
+              <input id="quality" type="range" min="30" max="100" value="75" />
+              <small>Si no sabés qué poner, dejalo como está.</small>
             </div>
-            <div class="actions">
-              <span id="pair-count">El DFF no se modifica.</span>
-              <div class="action-buttons">
-                <button class="button secondary" id="clear-button" type="button">Elegir otros</button>
-                <button class="button primary" id="optimize-button" type="button">Optimizar TXD</button>
-              </div>
+          </div>
+          <div class="actions">
+            <span class="toolbar-status" id="tool-status">Esperando archivos</span>
+            <div class="action-buttons">
+              <button class="button secondary" id="clear-button" type="button">Elegir otros</button>
+              <button class="button primary" id="optimize-button" type="button">Optimizar TXD</button>
             </div>
-          </section>
+          </div>
+        </div>
 
-          <section class="stage" id="results" hidden>
-            <div class="stage-head"><span class="stage-num">03</span><h2>Resultado</h2></div>
-            <div class="summary" id="summary" aria-live="polite"></div>
-            <div class="file-list" id="file-list"></div>
-            <div class="results-actions">
-              <button class="button secondary" id="restart-button" type="button">Otra skin</button>
-              <button class="button primary" id="download-all" type="button">Descargar .zip</button>
-            </div>
-            <p class="hint">El zip trae el DFF original y el TXD optimizado. Guardá los originales hasta probar la skin en el juego.</p>
-          </section>
+        <div class="results" id="results" hidden>
+          <h2>Resultado</h2>
+          <div class="summary" id="summary" aria-live="polite"></div>
+          <div class="file-list" id="file-list"></div>
+          <div class="results-actions">
+            <button class="button secondary" id="restart-button" type="button">Otra skin</button>
+            <button class="button primary" id="download-all" type="button">Descargar .zip</button>
+          </div>
+          <p class="hint">El zip trae el DFF original y el TXD optimizado. Guardá los originales hasta probar la skin en el juego.</p>
         </div>
       </section>
 
-      <aside class="warning">
-        Si abriste el archivo con doble clic, vas a poder elegir los archivos pero el optimizador no va a cargar. Usá la página publicada o serví la carpeta con <code>python -m http.server</code>.
-      </aside>
+      <p class="note">Si abriste el archivo con doble clic, vas a poder elegir los archivos pero el optimizador no va a cargar. Usá la página publicada o serví la carpeta con <code>python -m http.server</code>.</p>
     </main>
 
     <footer>
