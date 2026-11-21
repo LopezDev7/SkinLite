@@ -36,7 +36,7 @@ jobs:
       - name: Prepare site
         run: |
           mkdir _site
-          cp index.html styles.css app.js THIRD-PARTY-NOTICES.md _site/
+          cp index.html styles.css app.js dff.js THIRD-PARTY-NOTICES.md _site/
           cp -r pkg _site/pkg
           cp wasm-engine/MPL-2.0.txt _site/MPL-2.0.txt
       - name: Upload site
