@@ -22,6 +22,7 @@ document.addEventListener('paste', (event) => {
 document.querySelector('#clear-button').addEventListener('click', clearFiles);
 document.querySelector('#restart-button').addEventListener('click', restart);
 document.querySelector('#optimize-button').addEventListener('click', optimizeSkin);
+document.querySelector('#download-dff').addEventListener('click', downloadDff);
 document.querySelector('#download-all').addEventListener('click', downloadSkin);
 
 function setToolStatus(text, state = '') {
@@ -104,13 +105,44 @@ async function optimizeSkin() {
   setToolStatus('Procesando…', 'busy');
   try {
     const engine = await loadTxdEngine();
+    const originalTxdSize = txdFile.size;
     const bytes = new Uint8Array(await txdFile.arrayBuffer());
     const maxDimension = Number(document.querySelector('#max-size').value);
     const detail = Number(quality.value) / 100;
     const processed = engine.optimize_txd(bytes, maxDimension, detail);
-    optimizedDff = { file: dffFile, name: dffFile.name, size: dffFile.size, unchanged: true };
+    const originalDffSize = dffFile.size;
+    let dffData = new Uint8Array(await dffFile.arrayBuffer());
+    const reduction = Number(document.querySelector('#dff-reduction').value);
+    let dffNotice = '';
+    if (reduction > 0 && !window.SkinLiteDff) {
+      dffNotice = 'No cargó el optimizador del DFF. Incluimos el archivo original.';
+    } else if (reduction > 0) {
+      try {
+        const reduced = window.SkinLiteDff.optimizeDff(dffData, reduction);
+        if (reduced.length < dffData.length) dffData = reduced;
+        else dffNotice = 'No encontramos vértices seguros para reducir. Incluimos el DFF original.';
+      } catch (error) {
+        dffNotice = `${error.message || 'Este formato DFF no es compatible.'} Incluimos el archivo original.`;
+      }
+    }
+    optimizedDff = {
+      file: new Blob([dffData], { type: 'application/octet-stream' }),
+      name: dffFile.name,
+      size: dffData.length,
+      originalSize: originalDffSize,
+      saved: originalDffSize - dffData.length,
+      unchanged: dffData.length === originalDffSize,
+      notice: dffNotice,
+    };
     const name = txdFile.name.replace(/\.txd$/i, '') + '-ligera.txd';
-    optimizedTxd = { file: new Blob([processed], { type: 'application/octet-stream' }), name, size: processed.length, unchanged: false };
+    optimizedTxd = {
+      file: new Blob([processed], { type: 'application/octet-stream' }),
+      name,
+      size: processed.length,
+      originalSize: originalTxdSize,
+      saved: originalTxdSize - processed.length,
+      unchanged: false,
+    };
     renderResults();
     setToolStatus('Listo', 'ready');
   } catch (error) {
@@ -127,8 +159,8 @@ async function optimizeSkin() {
 }
 
 function renderResults() {
-  const oldSize = txdFile.size;
-  const saved = oldSize - optimizedTxd.size;
+  const oldSize = optimizedTxd.originalSize;
+  const saved = optimizedTxd.saved;
   const summary = document.querySelector('#summary');
   summary.replaceChildren();
   const headline = document.createElement('strong');
@@ -140,7 +172,13 @@ function renderResults() {
   const fill = document.createElement('span');
   fill.style.width = `${oldSize > 0 && saved > 0 ? Math.round((saved / oldSize) * 100) : 0}%`;
   bar.append(fill);
-  summary.append(headline, details, bar);
+  if (optimizedDff.saved > 0) {
+    const dffDetails = document.createElement('span');
+    dffDetails.textContent = `DFF: ${formatBytes(optimizedDff.originalSize)} → ${formatBytes(optimizedDff.size)}`;
+    summary.append(headline, details, dffDetails, bar);
+  } else {
+    summary.append(headline, details, bar);
+  }
 
   const list = document.querySelector('#file-list');
   list.replaceChildren();
@@ -149,10 +187,13 @@ function renderResults() {
     row.className = 'file-row';
     const name = document.createElement('span'); name.className = 'filename'; name.textContent = item.name;
     const size = document.createElement('span'); size.className = 'filesize'; size.textContent = formatBytes(item.size);
-    const note = document.createElement('span'); note.className = 'saved'; note.textContent = item.unchanged ? 'Sin cambios' : (saved > 0 ? 'Más liviano' : 'Optimizado');
+    const note = document.createElement('span'); note.className = 'saved'; note.textContent = item.unchanged ? 'Sin cambios' : (item.saved > 0 ? 'Más liviano' : 'Optimizado');
     row.append(name, size, note);
     list.append(row);
   }
+  const dffNotice = document.querySelector('#dff-notice');
+  dffNotice.textContent = optimizedDff.notice;
+  dffNotice.hidden = !optimizedDff.notice;
   status.hidden = true;
   settings.hidden = true;
   results.hidden = false;
@@ -169,6 +210,11 @@ async function downloadSkin() {
   ]);
   const zipName = `skinlite-${txdFile.name.replace(/\.txd$/i, '')}.zip`;
   download(zip, zipName);
+}
+
+function downloadDff() {
+  if (!optimizedDff) return;
+  download(optimizedDff.file, optimizedDff.name);
 }
 
 function crc32(bytes) {
@@ -244,6 +290,8 @@ function download(file, name) {
   const anchor = document.createElement('a');
   anchor.href = url;
   anchor.download = name;
+  document.body.append(anchor);
   anchor.click();
+  anchor.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 2000);
 }

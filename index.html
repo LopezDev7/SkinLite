@@ -4,9 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0d0d0d" />
-    <meta name="description" content="Optimizá el TXD de una skin de SA-MP desde el navegador. El DFF queda igual y los archivos no salen del equipo." />
-    <title>SkinLite — optimizador de TXD para SA-MP</title>
+    <meta name="description" content="Optimizá los archivos DFF y TXD de una skin de SA-MP desde el navegador. Los archivos no salen del equipo." />
+    <title>SkinLite — optimizador de skins para SA-MP</title>
     <link rel="stylesheet" href="styles.css" />
+    <script src="dff.js" defer></script>
     <script src="app.js" defer></script>
   </head>
   <body>
@@ -18,7 +19,7 @@
     <main id="top">
       <div class="intro">
         <h1>SkinLite</h1>
-        <p>Optimizá el TXD de una skin de SA-MP. El DFF queda igual y el TXD se guarda con las texturas más livianas. Todo corre en el navegador.</p>
+        <p>Optimizá los archivos DFF y TXD de una skin de SA-MP. Todo corre en el navegador.</p>
       </div>
 
       <section class="tool" id="stage-files">
@@ -52,12 +53,22 @@
               <input id="quality" type="range" min="30" max="100" value="75" />
               <small>Si no sabés qué poner, dejalo como está.</small>
             </div>
+            <label class="setting">
+              <span>Reducción del DFF</span>
+              <select id="dff-reduction">
+                <option value="0">No tocar el DFF</option>
+                <option value="15" selected>15% · cuidadoso</option>
+                <option value="30">30% · equilibrado</option>
+                <option value="50">50% · más agresivo</option>
+              </select>
+              <small>Une vértices muy cercanos. Probá la skin en el juego antes de usarla.</small>
+            </label>
           </div>
           <div class="actions">
             <span class="toolbar-status" id="tool-status">Esperando archivos</span>
             <div class="action-buttons">
               <button class="button secondary" id="clear-button" type="button">Elegir otros</button>
-              <button class="button primary" id="optimize-button" type="button">Optimizar TXD</button>
+              <button class="button primary" id="optimize-button" type="button">Optimizar archivos</button>
             </div>
           </div>
         </div>
@@ -66,11 +77,13 @@
           <h2>Resultado</h2>
           <div class="summary" id="summary" aria-live="polite"></div>
           <div class="file-list" id="file-list"></div>
+          <p class="dff-notice" id="dff-notice" role="status" hidden></p>
           <div class="results-actions">
             <button class="button secondary" id="restart-button" type="button">Otra skin</button>
+            <button class="button secondary" id="download-dff" type="button">Descargar DFF</button>
             <button class="button primary" id="download-all" type="button">Descargar .zip</button>
           </div>
-          <p class="hint">El zip trae el DFF original y el TXD optimizado. Guardá los originales hasta probar la skin en el juego.</p>
+          <p class="hint">El zip trae el DFF con la reducción elegida y el TXD optimizado. Si querés solo el DFF, usá ese botón. Guardá los originales hasta probar la skin en el juego.</p>
         </div>
       </section>
 

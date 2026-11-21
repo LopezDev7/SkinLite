@@ -139,6 +139,7 @@ main {
 }
 
 .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.settings-grid .setting:last-child { grid-column: 1 / -1; }
 
 .setting {
   display: flex;
@@ -225,6 +226,7 @@ main {
 .filesize { color: var(--muted); }
 .saved { font: 10px var(--mono); color: var(--muted); border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px; }
 .hint { margin: 12px 0 0; font-size: 12px; color: var(--muted); }
+.dff-notice { margin: 12px 0 0; padding: 10px 12px; border: 1px solid #5a4828; border-radius: 5px; background: #211d13; color: #e5c98c; font-size: 12px; }
 
 .note {
   margin: 18px 0 0;
