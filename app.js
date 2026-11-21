@@ -206,7 +206,7 @@ async function downloadSkin() {
   const txdBytes = new Uint8Array(await optimizedTxd.file.arrayBuffer());
   const zip = zipFiles([
     { name: optimizedDff.name, data: dffBytes },
-    { name: optimizedTxd.name, data: txdBytes },
+    { name: txdFile.name, data: txdBytes },
   ]);
   const zipName = `skinlite-${txdFile.name.replace(/\.txd$/i, '')}.zip`;
   download(zip, zipName);
