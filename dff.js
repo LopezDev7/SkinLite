@@ -239,14 +239,14 @@
     return { header, usedBones, indices, weights, matrices: payload.slice(matrixStart, trailingStart), trailing };
   }
 
-  function buildSkin(skin, order) {
+  function buildSkin(skin, order, averagedWeights) {
     const indexBytes = new Uint8Array(order.length * 4);
     const weightBytes = new Uint8Array(order.length * 16);
     const weightView = new DataView(weightBytes.buffer);
     for (let i = 0; i < order.length; i++) {
       const source = order[i];
       const boneIndices = skin.indices[source];
-      const boneWeights = skin.weights[source];
+      const boneWeights = averagedWeights ? averagedWeights[i] : skin.weights[source];
       if (!boneIndices || !boneWeights) throw new Error('Los pesos del esqueleto no coinciden con los vértices.');
       for (let j = 0; j < 4; j++) {
         indexBytes[i * 4 + j] = boneIndices[j];
@@ -327,6 +327,81 @@
     return selected;
   }
 
+  function normalKeyPart(source, index) {
+    const x = source[index * 3];
+    const y = source[index * 3 + 1];
+    const z = source[index * 3 + 2];
+    const length = Math.hypot(x, y, z) || 1;
+    const step = 0.125;
+    return `${Math.round(x / length / step)},${Math.round(y / length / step)},${Math.round(z / length / step)}`;
+  }
+
+  function selectAveragedNormals(source, map, order) {
+    const groups = groupByTarget(map, order.length);
+    const out = new Float32Array(order.length * 3);
+    for (let target = 0; target < order.length; target++) {
+      let x = 0, y = 0, z = 0;
+      for (const i of groups[target]) {
+        x += source[i * 3];
+        y += source[i * 3 + 1];
+        z += source[i * 3 + 2];
+      }
+      const length = Math.hypot(x, y, z);
+      if (length > 1e-6) {
+        out[target * 3] = x / length;
+        out[target * 3 + 1] = y / length;
+        out[target * 3 + 2] = z / length;
+      } else {
+        out[target * 3] = source[order[target] * 3];
+        out[target * 3 + 1] = source[order[target] * 3 + 1];
+        out[target * 3 + 2] = source[order[target] * 3 + 2];
+      }
+    }
+    return out;
+  }
+
+  function groupByTarget(map, count) {
+    const groups = Array.from({ length: count }, () => []);
+    for (let i = 0; i < map.length; i++) groups[map[i]].push(i);
+    return groups;
+  }
+
+  function uvKeyPart(source, index) {
+    const step = 0.01;
+    return `${Math.round(source[index * 2] / step)},${Math.round(source[index * 2 + 1] / step)}`;
+  }
+
+  function selectAveragedUVs(source, map, order) {
+    const groups = groupByTarget(map, order.length);
+    const out = new Float32Array(order.length * 2);
+    for (let target = 0; target < order.length; target++) {
+      let u = 0, v = 0;
+      for (const i of groups[target]) {
+        u += source[i * 2];
+        v += source[i * 2 + 1];
+      }
+      out[target * 2] = u / groups[target].length;
+      out[target * 2 + 1] = v / groups[target].length;
+    }
+    return out;
+  }
+
+  function weightKeyPart(weights) {
+    const step = 0.01;
+    return weights.map((weight) => Math.round(weight / step)).join(',');
+  }
+
+  function selectAveragedWeights(weights, map, order) {
+    const groups = groupByTarget(map, order.length);
+    return groups.map((group) => {
+      const averaged = [0, 0, 0, 0];
+      for (const i of group) {
+        for (let j = 0; j < 4; j++) averaged[j] += weights[i][j];
+      }
+      return averaged.map((sum) => sum / group.length);
+    });
+  }
+
   function clusterVertices(geom, skin, cell) {
     const map = new Int32Array(geom.numVertices).fill(-1);
     const buckets = new Map();
@@ -340,15 +415,15 @@
       const keyParts = [Math.round(x / cell), Math.round(y / cell), Math.round(z / cell)];
 
       if (geom.colors) keyParts.push(Array.from(geom.colors.subarray(i * 4, i * 4 + 4)).join(','));
-      for (const uv of geom.uvs) keyParts.push(`${uv[i * 2]},${uv[i * 2 + 1]}`);
+      for (const uv of geom.uvs) keyParts.push(uvKeyPart(uv, i));
       for (let morph = 0; morph < geom.morphTargets.length; morph++) {
         const target = geom.morphTargets[morph];
         if (target.vertices && morph > 0) keyParts.push(Array.from(target.vertices.subarray(i * 3, i * 3 + 3)).join(','));
-        if (target.normals) keyParts.push(Array.from(target.normals.subarray(i * 3, i * 3 + 3)).join(','));
+        if (target.normals) keyParts.push(normalKeyPart(target.normals, i));
       }
       if (skin) {
         keyParts.push(skin.indices[i].join(','));
-        keyParts.push(skin.weights[i].join(','));
+        keyParts.push(weightKeyPart(skin.weights[i]));
       }
 
       const key = keyParts.join('|');
@@ -414,7 +489,7 @@
     const diagonal = Math.hypot(maxX - minX, maxY - minY, maxZ - minZ) || 1;
     let best = null;
     let low = diagonal * 0.00005;
-    let high = diagonal * 0.01;
+    let high = diagonal * 0.05;
     for (let step = 0; step < 18; step++) {
       const cell = (low + high) / 2;
       const result = clusterVertices(geom, skin, cell);
@@ -432,7 +507,7 @@
     const morphTargets = geom.morphTargets.map((target, index) => ({
       ...target,
       vertices: target.vertices ? selectVectors(target.vertices, 3, best.representative) : null,
-      normals: target.normals ? selectVectors(target.normals, 3, best.representative) : null,
+      normals: target.normals ? selectAveragedNormals(target.normals, best.map, best.order) : null,
     }));
     const newGeom = {
       ...geom,
@@ -443,7 +518,7 @@
         for (let i = 0; i < newCount; i++) selected.set(geom.colors.subarray(best.representative[i] * 4, best.representative[i] * 4 + 4), i * 4);
         return selected;
       })() : null,
-      uvs: geom.uvs.map((uv) => selectVectors(uv, 2, best.representative)),
+      uvs: geom.uvs.map((uv) => selectAveragedUVs(uv, best.map, best.order)),
       morphTargets,
       vertices: morphTargets[0].vertices,
       normals: morphTargets[0].normals,
@@ -451,15 +526,16 @@
     };
 
     replacements.set(geometryStruct, buildGeometry(newGeom));
-    if (skinChunks.length) replacements.set(skinChunks[0], buildSkin(skin, best.representative));
+    if (skinChunks.length) replacements.set(skinChunks[0], buildSkin(skin, best.representative, selectAveragedWeights(skin.weights, best.map, best.order)));
     if (binChunks.length) replacements.set(binChunks[0], buildBinMesh(remapBinMesh(bin, best.map)));
     return true;
   }
 
   function reduceDff(bytes, percent) {
     const chunks = parseChunks(bytes, 0, bytes.length);
-    if (chunks.length !== 1 || chunks[0].type !== CHUNK.CLUMP) throw new Error('El archivo no es un DFF de GTA San Andreas.');
-    const geometryChunks = findChunks(chunks, CHUNK.GEOMETRY);
+    const clump = chunks.find((chunk) => chunk.type === CHUNK.CLUMP);
+    if (!clump) throw new Error('El archivo no es un DFF de GTA San Andreas.');
+    const geometryChunks = findChunks([clump], CHUNK.GEOMETRY);
     if (!geometryChunks.length) throw new Error('El DFF no tiene geometría.');
     const target = Math.max(0, Math.min(0.5, percent / 100));
     if (target === 0) return new Uint8Array(bytes);
@@ -470,7 +546,9 @@
       changed = reduceGeometry(geometryChunk, replacements, target) || changed;
     }
     if (!changed) return new Uint8Array(bytes);
-    return serializeChunks(chunks, replacements);
+    const parsedEnd = chunks.reduce((end, chunk) => Math.max(end, chunk.end), 0);
+    const tail = bytes.subarray(parsedEnd);
+    return concat([serializeChunks(chunks, replacements), tail]);
   }
 
   const api = { optimizeDff: reduceDff, parseChunks, findChunk, findChunks, CHUNK };
