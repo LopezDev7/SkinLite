@@ -1,0 +1,48 @@
+name: Deploy SkinLite to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Rust and WebAssembly target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - name: Install wasm-pack
+        uses: jetli/wasm-pack-action@v0.4.0
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Build TXD optimizer
+        run: wasm-pack build wasm-engine --target web --release --out-dir ../pkg --out-name skinlite_txd
+      - name: Prepare site
+        run: |
+          mkdir _site
+          cp index.html styles.css app.js dff.js THIRD-PARTY-NOTICES.md _site/
+          cp -r pkg _site/pkg
+          cp wasm-engine/MPL-2.0.txt _site/MPL-2.0.txt
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
